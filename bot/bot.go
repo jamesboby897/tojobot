@@ -1,46 +1,34 @@
 package bot
 
 import (
-	"fmt"
 	"github.com/bwmarrin/discordgo"
-	"strings"
-	"tojobot/config"
+	"os"
+	"os/signal"
+	"syscall"
 )
-
-var BotId string
-var goBot *discordgo.Session
-
-func Start(){
-	goBot, err := discordgo.New("Bot " + config.Token)
-
-	if err != nil {
-		fmt.Println(err.Error())
-		return
+func InitBot(token string){
+	bot,err:=discordgo.New("Bot "+token)
+	if err != nil{
+		panic(err)
 	}
-	u, err := goBot.User("@me")
-	if err != nil {
-		fmt.Println(err.Error())
-		return
+	bot.AddHandler(ready)
+	bot.AddHandler(messageCreate)
+	bot.Identify.Intents = discordgo.IntentsGuilds | discordgo.IntentsGuildMessages | discordgo.IntentsGuildVoiceStates
+	err = bot.Open()
+	if err!=nil{
+		panic(err)
 	}
-	BotId = u.ID
-
-	goBot.AddHandler(messageHandler)
-
-	err = goBot.Open()
-	//Error handling
+	sc := make(chan os.Signal, 1)
+	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
+	<-sc
+	err = bot.Close()
 	if err != nil {
-		fmt.Println(err.Error())
-		return
+		panic(err)
 	}
-	fmt.Println("Bot is running !")
 }
-
-func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
-	if m.Author.ID == BotId {
-		return
-	}
-	message := strings.Contains(strings.ToLower(string(m.Content)),"kiryu")
-	if message {
-		_, _ = s.ChannelMessageSend(m.ChannelID, "Dojima no Ryu!")
+func ready(session *discordgo.Session, event *discordgo.Ready) {
+	err := session.UpdateGameStatus(0, "Yakuza Kiwami")
+	if err != nil{
+		panic(err)
 	}
 }
