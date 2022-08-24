@@ -5,15 +5,7 @@ import (
 	"tojobot/YT"
 )
 
-type audioData struct{
-	id string
-	title string
-	opusData [][]byte
-}
-func addToQueue(id string, title string){
-
-}
-func playAudio(id string,session *discordgo.Session,guildID string,channelID string){
+func playAudio(id string, session *discordgo.Session, guildID string, channelID string) {
 	vc, err := session.ChannelVoiceJoin(guildID, channelID, false, true)
 	if err != nil {
 		panic(err)
@@ -39,4 +31,3 @@ func playAudio(id string,session *discordgo.Session,guildID string,channelID str
 		panic(err)
 	}
 }
-
